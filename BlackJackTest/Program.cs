@@ -121,7 +121,7 @@ while(gameActive)
     
     if (gameOver)
     {
-        System.Console.WriteLine("To start a new game, enter 1. To exit, enter 0. For help, enter 9.\n");
+        System.Console.WriteLine("To start a new game, enter 1. To exit, enter 0. For help, enter 5.\n");
         int userInputOutside = UserInput();
         if(userInputOutside == 0) // End Game
         {
