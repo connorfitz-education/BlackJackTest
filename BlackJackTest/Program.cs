@@ -6,16 +6,16 @@ int[] dealerDeck = new int[1];
 decimal balance = 1500;
 bool gameActive = true;
 bool gameOver = true;
-bool canChangeBet = true;
+bool hasNotDrawn = true;
 
-// Pre Game
+// Welcome Message
 System.Console.WriteLine("---------------------------------------------");
 System.Console.WriteLine("\nWelcome to Blackjack!\n");
 System.Console.WriteLine("---------------------------------------------\n");
 
+// Initial Bet
 Console.WriteLine($"To begin, please place a bet.");
 decimal bet = BetSystem(balance, 0, true);
-    
 
 // Game
 while(gameActive)
@@ -29,26 +29,23 @@ while(gameActive)
     DeckDisplay(dealerDeck, "Dealer");
     System.Console.WriteLine(" ");
     int userInput = UserInput();
-
-    if(userInput == 5) // Help
+ 
+    if(userInput == 0) // End Game
     {
-        Help();
-    }
-
-    if(userInput == 4 && canChangeBet) // Alter Bet
-    {
-        bet = BetSystem(balance, bet, false);
-    }
-    
-    else if(userInput == 4 && !canChangeBet)
-    {
-        System.Console.WriteLine("Sorry, you've already began playing and cannot alter your bet.");
+        balance -= bet;
+        System.Console.WriteLine("Round Forfeited.");
+        System.Console.WriteLine($"Money lost: {bet:C}");
+        System.Console.WriteLine($"New Balance: {balance:C}\n");
+        System.Console.WriteLine("---------------------------------------------\n");
+        gameOver = true;
     }
     
     if(userInput == 1) // Draw
     {
-        canChangeBet = false;
+        hasNotDrawn = false;
         playerDeck = DrawCard(playerDeck);
+        
+        // Check win status
         if(playerDeck.Sum() == 21)
         {
             DeckDisplay(playerDeck, "Your");
@@ -64,13 +61,10 @@ while(gameActive)
             gameOver = true;
         }
         
-    } 
-    if(userInput == 0) // End Game
-    {
-        gameOver = true;
     }
     if(userInput == 2 || blackJack) // Stand
     {
+        System.Console.WriteLine("Dealer's turn:\n");
         dealerDeck = DealerDraw(dealerDeck);
         Thread.Sleep(700);
         System.Console.WriteLine("---------------------------------------------\n");
@@ -78,13 +72,10 @@ while(gameActive)
         balance += CardCheck(playerDeck, dealerDeck, bet);;
         System.Console.WriteLine($"New Balance: {balance:C}\n");
         gameOver = true;
-
-
-
     }
     if(userInput == 3) // Double
     {
-        if(bet*2 < balance && canChangeBet)
+        if(bet*2 < balance && hasNotDrawn)
         {
         playerDeck = DrawCard(playerDeck);
         DeckDisplay(playerDeck, "Your");
@@ -93,6 +84,7 @@ while(gameActive)
         System.Console.WriteLine($"Doubled Bet: {bet:C}");
         System.Console.WriteLine("\n---------------------------------------------\n");
         Thread.Sleep(1500);
+        System.Console.WriteLine("Dealer's turn:\n");
         dealerDeck = DealerDraw(dealerDeck);
         Thread.Sleep(700);
         
@@ -104,22 +96,25 @@ while(gameActive)
         bet /= 2;
         gameOver = true;
         }
-        if(!canChangeBet || !(bet*2 < balance))
+        if(!hasNotDrawn || !(bet*2 < balance))
         {
             System.Console.WriteLine("Sorry, you cannot double you bet at this time.");
         }
     }
-    if(bet > balance)
+    if(userInput == 5) // Help
+    {
+        Help();
+    }
+    if(bet > balance) // Bankruptcy
     {
         balance = 100;
         bet = 10;
         System.Console.WriteLine("You went bankrupt! Here's a dollar.");
         Console.WriteLine($"New Balance: {balance:C}\n");
     }
-    
     }
-    
-    if (gameOver)
+
+    if(gameOver) // Pre-Game
     {
         System.Console.WriteLine("To start a new game, enter 1. To exit, enter 0. For help, enter 5.\n");
         int userInputOutside = UserInput();
@@ -127,21 +122,25 @@ while(gameActive)
         {
             gameActive = false;
         }
-        else if(userInputOutside == 1) //Start Game - new decks
+        if(userInputOutside == 1) //Start Game - new decks
         {
             Array.Resize(ref playerDeck, 2);
             Array.Resize(ref dealerDeck, 1);
             playerDeck = DeckBuilder(playerDeck);
             dealerDeck = DeckBuilder(dealerDeck);
             gameOver = false;
-            canChangeBet = true;
+            hasNotDrawn = true;
         }
-    else if(userInputOutside == 5){Help();} // Help Menu
-    else if(userInputOutside == 4 ){bet = BetSystem(balance, bet, false);}// Change bet
+        if(userInputOutside == 4)// Change bet
+        {
+            bet = BetSystem(balance, bet, false);
+        }
+        if(userInputOutside == 5) // Help Menu
+        {
+            Help();
+        }
     
     }
-    
-    
 }
 
 static int[] DealerDraw(int[] dealerDeck)
@@ -238,12 +237,18 @@ static void Help()
 {
     bool helpMenu = true;
     while(helpMenu){
-    System.Console.WriteLine("5 - Help");
-    System.Console.WriteLine("4 - Change Bet");
-    System.Console.WriteLine("3 - Double");
-    System.Console.WriteLine("2 - Stand");
-    System.Console.WriteLine("1 - Draw / Begin Game");
-    System.Console.WriteLine("0 - Exit");
+        
+            System.Console.WriteLine("5 - Help");
+            System.Console.WriteLine("4*- Change Bet");
+            System.Console.WriteLine("3 - Double");
+            System.Console.WriteLine("2 - Stand");
+            System.Console.WriteLine("1 - Draw");
+            System.Console.WriteLine("1*- Start Round");
+            System.Console.WriteLine("0 - Forfeit Round (Lose Bet)");
+            System.Console.WriteLine("0*- Exit Program\n");
+            System.Console.WriteLine("* = Before Round Start");
+        
+    
     System.Console.Write("\nTo exit this menu, enter 5: ");
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
         if (Console.ReadLine().Equals("5"))
